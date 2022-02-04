@@ -1,0 +1,40 @@
+###################PACKAGES###################
+
+library(ggplot2)
+library(ggspatial)
+library(readxl)
+library(raster)
+library(sp)
+library(sf)
+
+###################PSEUDO ABSENCES###################
+
+#load the shapefile
+med_basin <- shapefile("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/shapefile/Mediterranean_basin.shp")
+plot(med_basin)
+m_b <- med_basin$geometry#geometry isolation 
+
+#load the function
+source("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/pseudoabsence_function_random.R")
+
+#load the last dataset
+B_europaea <- read_excel("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/B_europaea.xlsx")
+
+#number of pseudoabsences to generate 
+np <- nrow(B_europaea)#136
+
+#run the random sampling 
+result <- pseudoabsence_function_random(geometry_area = m_b, Sp = "Balanophyllia_europaea", rep=10, n_pseudo=np, seme=32425)
+
+#import one layer
+bath <- raster("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/environmental_rasters/bath.tif")
+
+#check visually the pseudoabsences generation 
+pseudo_presence<- ggplot() + 
+  layer_spatial(bath) +
+  scale_fill_viridis_c(na.value = NA) + 
+  layer_spatial(B_europaea,alpha = 0.2, size=1) + 
+  layer_spatial(result[[1]] , alpha = 0.2 , size =1, col ="red")
+
+#save the result of the pseudoabsences into an R object 
+save(result, file= "C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/pseudoabs_random.Rda")
