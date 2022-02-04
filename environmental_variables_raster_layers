@@ -10,8 +10,12 @@ library(ape)
 library(writexl)
 library(sf)
 
+###################SET WORKING DIRECTORY###################
+
 #set the working directory
 setwd("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/environmental_rasters")
+
+###################IMPORT RASTERS###################
 
 #the raster layers for the environmental variables were downloaded from BioOracle but the bathymetry
 bat <- raster("global_bathymetry")
@@ -33,6 +37,7 @@ plot(sal,col=rainbow(100),main="Salinity")
 plot(cal,col=rainbow(100),main="Calcite")
 plot(pH,col=rainbow(100),main="pH")
 
+###################CROP ON THE MEDITERRANEAN BASIN###################
 
 #to have all rasters with the same extent
 #we can crop them using a shapefile of the area of interest
