@@ -99,3 +99,35 @@ dim(thinned_dataset)#144
 #visualize the thinned occurrences
 plot(wrld_simpl, xlim=c(-180,180), ylim=c(-90,90), axes=TRUE, col="#FFCC66", bg = "light blue", main = "Global distribution of the ringed seal")
 points(thinned_dataset$Longitude, thinned_dataset$Latitude, col='red', pch=20, cex=0.75)
+
+###################EXTRACT AND CREATE THE DATASET###################
+
+#set the working directory
+setwd("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/environmental_rasters")
+
+#we recall all the variables as rater layers which were cropped on the extent of the Mediterranean basin (shp)
+bat <- raster("bath.tif")
+temp <- raster("Temperature.tif")
+sal <- raster("Salinity.tif")
+cal <- raster("Calcite.Mean.tif")
+ox <- raster("Dissolved.oxygen.tif")
+pH <- raster("pH.tif")
+
+temperature<-extract(temp, thinned_dataset, method="bilinear")
+oxygen<-extract(ox, thinned_dataset, method="bilinear")
+salinity<-extract(sal, thinned_dataset, method="bilinear")
+pH<-extract(pH, thinned_dataset, method="bilinear")
+calcite<-extract(cal, thinned_dataset, method="bilinear")
+bathymetry<-extract(bat, thinned_dataset, method="bilinear")
+
+bal_eur<-data.frame(cbind(coordinates(thinned_dataset),
+                               temperature, oxygen, salinity, pH, calcite, bathymetry))
+dim(bal_eur)#144
+
+#get rid of NA values
+Bal_eur <- subset(bal_eur, !is.na(temperature) & !is.na(calcite) & !is.na(bathymetry) & !is.na(oxygen) & !is.na(salinity) & !is.na(pH))
+dim(Bal_eur)#136
+
+#save the dataset as .xlsx
+write_xlsx(Bal_eur,"C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/B_europaea.xlsx")
+
