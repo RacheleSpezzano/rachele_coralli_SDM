@@ -1,0 +1,101 @@
+###################PACKAGES###################
+
+library(sp)
+library(raster)
+library(maptools)
+library(rasterVis)
+library(rgdal)
+library(dismo)
+library(ape)
+library(writexl)
+library(sf)
+library(spThin)
+
+###################IMPORT SPECIES DATA###################
+
+balanophyllia_europaea <- gbif("balanophyllia", "europaea", geo=TRUE, removeZeros = FALSE)
+colnames(balanophyllia_europaea)
+#longitude: lon
+#latitude: lat
+#uncertainity column: coordinateUncertaintyInMeters
+
+###################DATA CLEANING###################
+
+#select the records that have longitude and latitude data only (excluse NA values)
+be_geo <- subset(balanophyllia_europaea, !is.na(lon) & !is.na(lat))
+
+#select the records that have defined uncertainty below 25 metres
+be_geo <- subset(be_geo, !is.na(coordinateUncertaintyInMeters) & be_geo$coordinateUncertaintyInMeters <= 25)
+be_geo$coordinateUncertaintyInMeters
+
+#find and delete the duplicates
+dups <- duplicated(be_geo[, c('lon', 'lat')])
+sum(dups)
+begeo <- be_geo[!dups, ]
+dim(begeo)#383
+dim(be_geo)#1458
+#1075 duplicates
+
+#make a SPDF and check mismatches
+data("wrld_simpl")
+coordinates(begeo) <- ~lon+lat
+crs(begeo) <- crs(wrld_simpl)
+class(begeo)
+ovr <- over(begeo, wrld_simpl)#at the spatial locations of object x 
+#retrieves the indices or attributes from spatial object y
+
+#Which points have coordinates that are in a different country 
+#than listed in the 'country' field of the gbif record?
+cntr <- ovr$country
+j <- which(cntr != begeo$country)
+# for the mismatches, bind the country names of the polygons and points
+cbind(cntr, begeo$country)[j,]#no countries were found as mismatches
+
+
+#back to normal dataframe and save
+begeo <- as.data.frame(begeo)
+write_xlsx(begeo, "C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/dataset_begeo.xlsx")
+
+###################THINNING###################
+
+thinned_data <- thin(
+  loc.data = dataset_begeo,
+  lat.col = "lat",
+  long.col = "lon",
+  spec.col = "acceptedScientificName",
+  thin.par = 2,
+  reps = 50, 
+  locs.thinned.list.return = TRUE,
+  write.files = FALSE,
+  write.log.file = TRUE,
+  log.file = "C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/spatial_thin_log.txt",
+  verbose = TRUE)
+
+#check whcih are the datasets containing the max number of records after thinning
+lapply(thinned_data, nrow)
+nrow(thinned_data[[1]])#144
+nrow(thinned_data[[2]])#144
+thinned1 <- thinned_data[[1]]
+thinned2 <- thinned_data[[2]]
+
+#between these two we should choose the one with the most spreaded values
+thinned1sf <- st_as_sf(thinned1, coords = c("Longitude", "Latitude"), crs = "WGS84")
+thinned2sf <- st_as_sf(thinned2, coords = c("Longitude", "Latitude"), crs = "WGS84")
+
+m1 <- st_distance(thinned1sf, thinned1sf)
+m2 <- st_distance(thinned2sf, thinned2sf)
+
+dm1 <- upper.tri(m1, diag = FALSE)
+dm2 <- upper.tri(m2, diag = FALSE)
+
+mean(dm1)#0.4965278
+mean(dm2)#0.4965278
+#I can select a random dataset because the distance is the same. I choose the first one
+
+#save the selected dataset
+write_xlsx(thinned1, "C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/thinned_dataset.xlsx")
+dim(thinned_dataset)#144
+
+#visualize the thinned occurrences
+plot(wrld_simpl, xlim=c(-180,180), ylim=c(-90,90), axes=TRUE, col="#FFCC66", bg = "light blue", main = "Global distribution of the ringed seal")
+points(thinned_dataset$Longitude, thinned_dataset$Latitude, col='red', pch=20, cex=0.75)
