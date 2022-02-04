@@ -1,4 +1,5 @@
-#packages
+###################PACKAGES###################
+
 library(sp)
 library(raster)
 library(maptools)
@@ -10,20 +11,18 @@ library(writexl)
 library(sf)
 
 #set the working directory
-setwd("C:/Users/hp/Desktop/TESI/raster_layers")
+setwd("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/environmental_rasters")
 
-#we recall all the variables
-bat <- raster("C:/Users/hp/Desktop/BATRESOL.tif")
-#The layer BAT was first resampled  to obtain all layers 
-#with the same resolution using QGIS 3.16.14
-temp <- raster("C:/Users/hp/Desktop/TESI/raster_layers/temperature.tif")
-sal <- raster("C:/Users/hp/Desktop/TESI/raster_layers/salinity.tif")
-cal <- raster("C:/Users/hp/Desktop/TESI/raster_layers/calcite.tif")
-ox <- raster("C:/Users/hp/Desktop/TESI/raster_layers/oxygen.tif")
-pH <- raster("C:/Users/hp/Desktop/TESI/raster_layers/pH.tif")
+#the raster layers for the environmental variables were downloaded from BioOracle but the bathymetry
+bat <- raster("global_bathymetry")
+temp <- raster("global_mean_temperature.tif")
+sal <- raster("global_salinity.tif")
+cal <- raster("global_calcite.tif")
+ox <- raster("global_oxygen.tif")
+pH <- raster("global_pH.tif")
 
-#we assign a projection to bat which is the batimetry
-projection(bat) <- "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"
+#all the raster layers from BioOracle had the same resolution
+#the bathymetry resolution was corrected and set as the other layers using QGIS
 
 #we can plot all our variables together to visualize them
 par(mfrow=c(3,2))
@@ -37,7 +36,7 @@ plot(pH,col=rainbow(100),main="pH")
 
 #to have all rasters with the same extent
 #we can crop them using a shapefile of the area of interest
-shape <- st_read("C:/Users/hp/Desktop/TESI/raster_layers/Mediterranean_basin.shp")
+shape <- st_read("C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/Mediterranean_basin.shp")
 plot(shape)
 crop_bat <- crop(bat, shape)
 crop_temp <- crop(temp, shape)
@@ -45,20 +44,3 @@ crop_ox <- crop(ox, shape)
 crop_cal <- crop(cal, shape)
 crop_sal <- crop(sal, shape)
 crop_pH <- crop(pH, shape)
-
-#we can stack together all our raster files
-stack_file <- stack(crop_bat, crop_temp, crop_ox, crop_cal, crop_sal, crop_pH)
-Esummary(stack_file)
-plot(stack_file)
-#the stack_file needs to be saved
-writeRaster(stack_file, filename = "stack_file.tif")
-stack_file <- raster("C:/Users/hp/Desktop/TESI/raster_layers/stack_file.tif")
-#Single grids from a grid stack can be selected using the $ selection: example
-stack_file$bat
-
-
-#the stack_file needs to be masked with the shape file
-raster_mask <- mask(stack_file, shape)
-plot(raster_mask)
-#also the stack file needs to be saved
-writeRaster(raster_mask, filename = names(raster_mask), bylayer=TRUE, format="GTiff")
