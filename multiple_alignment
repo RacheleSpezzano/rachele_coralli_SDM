@@ -1,0 +1,53 @@
+###################PACKAGES###################
+
+if(!requireNamespace("BiocManager", quietly=TRUE))
+  install.packages("BiocManager")
+BiocManager::install("msa")
+
+library(protr)
+library(seqinr)
+library(ape)
+library(msa)
+library(phangorn)
+
+###################IMPORT SEQUENCES###################
+
+sequenze_stylo <- readFASTA("sequenze_stylophora.fasta")
+sequenze_stylo
+
+myFirstAlignment <- msa("sequenze_stylophora.fasta", type = "protein")
+myFirstAlignment
+
+msaPrettyPrint(myFirstAlignment, y=c(164, 213), output="asis",
+               showNames="none", showLogo="none", askForOverwrite=FALSE)
+#scarica TEXshade: ‘TEXshade’ is not available for this version of R
+ 
+###################DISTANCE MATRICES###################
+
+my_alignement_converted <- msaConvert(myFirstAlignment, type="seqinr::alignment")
+d <- dist.alignment(my_alignement_converted , "identity")
+d
+
+#phylogenetic tree
+#maximum likelihood
+
+stylophora_NJ <- NJ(d)
+stylophora_NJ
+
+#maximum likelihood - bootstrap
+fit <- pml(stylophora_NJ, d)
+print(fit)
+fitJC <- optim.pml(fit, model = "JC", rearrangement = "stochastic")
+logLik(fitJC)
+bs <- bootstrap.pml(fitJC, bs=100, optNni=TRUE, multicore=TRUE, control = pml.control(trace=0))
+plotBS(midpoint(fitJC$tree), bs, p = 50, type="p")
+
+
+
+install.packages(TEXshade, repos = getOption("https://www.ctan.org/"),
+                 contriburl = contrib.url(ctan), available = NULL, destdir = NULL,
+                 dependencies = NA,
+                 clean = FALSE, Ncpus = getOption(Ncpus, 1L),
+                 verbose = getOption("verbose"),
+                 libs_only = FALSE, quiet = FALSE,
+                 keep_outputs = FALSE)
