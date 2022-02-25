@@ -5,8 +5,11 @@ BLAST query/options error: Either a BLAST database or subject sequence(s) must b
 Please refer to the BLAST+ user manual.
 
 C:\Users\hp\Desktop\BLAST> blastn -subject L_pruvoti.fasta -query EU532164.fasta -outfmt 7 -max_target_seqs 5
+# let the results display to the console (without specifying -out file_name)
+
 # BLASTN 2.12.0+
 # Query: EU532164.1
 # Database: User specified sequence set (Input: L_pruvoti.fasta)
 # 0 hits found
 # BLAST processed 1 queries
+
