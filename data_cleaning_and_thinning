@@ -100,6 +100,41 @@ dim(thinned_dataset)#144
 plot(wrld_simpl, xlim=c(-180,180), ylim=c(-90,90), axes=TRUE, col="#FFCC66", bg = "light blue", main = "Global distribution of the ringed seal")
 points(thinned_dataset$Longitude, thinned_dataset$Latitude, col='red', pch=20, cex=0.75)
 
+###################ciclo for###################
+
+#selection of the dataset with the most spreaded values{}
+thinned_data_st <- list()
+for(j in 1:50){
+  thinned_data_st[[j]] <- st_as_sf(thinned_data[[j]], coords = c("Longitude", "Latitude"), crs = "WGS84")}
+
+dist_pres <- rep(NA, 50)
+for(k in 1:50){
+  m_dist <- st_distance(thinned_data_st[[k]], thinned_data_st[[k]])
+  c <- 1
+  dist_repl <- NA
+  for(t in 1:nrow(m_dist)){
+    for(p in 1:ncol(m_dist)){
+      if(t>p){
+        dist_repl[c]<- m_dist[t, p]
+        c <- c + 1
+      }
+    }
+  }
+  dist_pres[k] <- mean(dist_repl, na.rm = T)
+}
+
+#which is the maximum
+which(max(dist_pres)==dist_pres)
+thinned <- thinned_data[[47]]#255 occurrences
+
+#save the selected dataset
+write_xlsx(thinned, "C:/Users/hp/Desktop/TESI/Rachele_coralli/SDM/dataset/thinned_B_europaea.xlsx")
+
+#visualize the thinned occurrences
+plot(wrld_simpl, xlim=c(-6,36), ylim=c(30,47), axes=TRUE, col="#FFCC66", bg = "light blue", main = "Global distribution of the ringed seal")
+points(thinned$Longitude, thinned$Latitude, col='red', pch=20, cex=0.75)
+
+
 ###################EXTRACT AND CREATE THE DATASET###################
 
 #set the working directory
