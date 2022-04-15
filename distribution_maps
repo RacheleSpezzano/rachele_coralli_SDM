@@ -1,0 +1,110 @@
+#load the packages
+library(ggplot2)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(ggspatial)
+library(patchwork)
+library(RStoolbox)
+library(rasterVis)
+library(rgdal)
+library(viridis)
+
+#Balanophyllia europaea
+raster_medio_presente_ba <- raster("C:/Users/hp/Desktop/Ricerca/Balano_eu/ba_eu_past.tif")
+raster_medio_futuro_ba <- raster("C:/Users/hp/Desktop/Ricerca/Balano_eu/ba_eu_future.tif")
+
+#Leptopsammia pruvoti
+raster_medio_presente_le <- raster("C:/Users/hp/Desktop/Ricerca/Lepto_pru/le_pru_past.tif")
+raster_medio_futuro_le <- raster("C:/Users/hp/Desktop/Ricerca/Lepto_pru/le_pru_future.tif")
+
+
+#Load the Mediterranean Basin
+m_b <- shapefile("C:/Users/hp/Desktop/Ricerca/TESI/Rachele_coralli/SDM/shapefile/Mediterranean_basin.shp")
+
+#Balanophyllia europaea
+present <- raster_medio_presente_ba 
+names(present) <- "Probability"
+values(present) <- ifelse(values(present) >= 0.77, 1, 0)
+
+p1 <- ggplot() + geom_raster(present, mapping = aes(x = x,y = y, fill = Probability), interpolate = TRUE)+
+  layer_spatial(m_b, col="black", alpha=0)+
+  scale_fill_gradient("Habitat suitability", na.value ="white", low = "aliceblue", high = "dark green")+ theme_classic()+
+  ggtitle("Current predicted habitat suitability of B. europaea")+labs(x = "Longitude", y = "Latitude", caption = "Prediction: XGBoost 1.5.2.1") + 
+  theme(axis.title = element_text(size = 10, face = "italic"), plot.title = element_text(hjust = 0.5, size = 16, face = "italic")) +
+  annotate(geom = "text", x = 5, y = 42.6, label = "Gulf of Lyon", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 8.9, y = 43.5, label = "Ligurian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 12, y = 40.5, label = "Tyrrhenian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 17.5, y = 35.5, label = "Mediterranean Sea", fontface = "italic", color = "grey22", size = 4) +
+  annotate(geom = "text", x = 17, y = 42.3, label = "Adriatic Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.7, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  coord_sf(xlim = c(-10, 38), ylim = c(29, 48), crs = "WGS84") 
+
+
+
+future <- raster_medio_futuro_ba
+names(future) <- "Probability"
+values(future) <- ifelse(values(future) >= 0.77, 1, 0)
+
+p2 <- ggplot() + geom_raster(future, mapping = aes(x = x,y = y, fill = Probability), interpolate = TRUE)+
+  layer_spatial(m_b, col="black", alpha=0)+
+  scale_fill_gradient("Habitat suitability", na.value ="white", low = "aliceblue", high = "dark green")+ theme_classic()+
+  ggtitle("Future predicted habitat suitability of B. europaea (2040-2050)")+labs(x = "Longitude", y = "Latitude", caption = "Prediction: XGBoost 1.5.2.1") + 
+  theme(axis.title = element_text(size = 10, face = "italic"), plot.title = element_text(hjust = 0.5, size = 16, face = "italic")) +
+  annotate(geom = "text", x = 5, y = 42.6, label = "Gulf of Lyon", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 8.9, y = 43.5, label = "Ligurian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 12, y = 40.5, label = "Tyrrhenian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 17.5, y = 35.5, label = "Mediterranean Sea", fontface = "italic", color = "grey22", size = 4) +
+  annotate(geom = "text", x = 17, y = 42.3, label = "Adriatic Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.7, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  coord_sf(xlim = c(-10, 38), ylim = c(29, 48), crs = "WGS84") 
+
+#Leptosammia pruvoti
+pres <- raster_medio_presente_le 
+names(pres) <- "Probability"
+values(pres) <- ifelse(values(pres) >= 0.77, 1, 0)
+
+p3 <- ggplot() + geom_raster(pres, mapping = aes(x = x,y = y, fill = Probability), interpolate = TRUE)+
+  layer_spatial(m_b, col="black", alpha=0)+
+  scale_fill_gradient("Habitat suitability", na.value ="white", low = "aliceblue", high = "dark green")+ theme_classic()+
+  ggtitle("Current predicted habitat suitability of L. pruvoti")+labs(x = "Longitude", y = "Latitude", caption = "Prediction: XGBoost 1.5.2.1") + 
+  theme(axis.title = element_text(size = 10, face = "italic"), plot.title = element_text(hjust = 0.5, size = 16, face = "italic")) +
+  annotate(geom = "text", x = 5, y = 42.6, label = "Gulf of Lyon", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 8.9, y = 43.5, label = "Ligurian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 12, y = 40.5, label = "Tyrrhenian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 17.5, y = 35.5, label = "Mediterranean Sea", fontface = "italic", color = "grey22", size = 4) +
+  annotate(geom = "text", x = 17, y = 42.3, label = "Adriatic Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.7, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  coord_sf(xlim = c(-10, 38), ylim = c(29, 48), crs = "WGS84") 
+
+
+
+fut <- raster_medio_futuro_le
+names(fut) <- "Probability"
+values(fut) <- ifelse(values(fut) >= 0.77, 1, 0)
+
+p4 <- ggplot() + geom_raster(fut, mapping = aes(x = x,y = y, fill = Probability), interpolate = TRUE)+
+  layer_spatial(m_b, col="black", alpha=0)+
+  scale_fill_gradient("Habitat suitability", na.value ="white", low = "aliceblue", high = "dark green")+ theme_classic()+
+  ggtitle("Future predicted habitat suitability of L. pruvoti (2040-2050)")+labs(x = "Longitude", y = "Latitude", caption = "Prediction: XGBoost 1.5.2.1") + 
+  theme(axis.title = element_text(size = 10, face = "italic"), plot.title = element_text(hjust = 0.5, size = 16, face = "italic")) +
+  annotate(geom = "text", x = 5, y = 42.6, label = "Gulf of Lyon", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 8.9, y = 43.5, label = "Ligurian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 12, y = 40.5, label = "Tyrrhenian Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotate(geom = "text", x = 17.5, y = 35.5, label = "Mediterranean Sea", fontface = "italic", color = "grey22", size = 4) +
+  annotate(geom = "text", x = 17, y = 42.3, label = "Adriatic Sea", fontface = "italic", color = "grey22", size = 3) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.7, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  coord_sf(xlim = c(-10, 38), ylim = c(29, 48), crs = "WGS84") 
+
